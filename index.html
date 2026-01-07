@@ -24,18 +24,18 @@
 
     <!-- Stats and controls overlay -->
     <div id="controls" class="controls">
-      <div class="stats">
+      <div class="stats" role="status" aria-label="Run statistics">
         <div class="stat">
-          <span class="stat-value" id="duration">00:00:00</span>
+          <span class="stat-value" id="duration" aria-label="Duration">00:00:00</span>
           <span class="stat-label">Duration</span>
         </div>
         <div class="stat">
-          <span class="stat-value" id="distance">0.00 km</span>
+          <span class="stat-value" id="distance" aria-label="Distance">0.00 km</span>
           <span class="stat-label">Distance</span>
         </div>
       </div>
       
-      <button id="play-pause-btn" class="play-pause-btn" data-state="stopped" disabled>
+      <button id="play-pause-btn" class="play-pause-btn" data-state="stopped" aria-label="Start run" disabled>
         <svg id="play-icon" viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
           <path d="M8 5v14l11-7z"/>
         </svg>
@@ -48,7 +48,7 @@
       </button>
 
       <button id="finish-btn" class="finish-btn" style="display: none;" disabled>
-        Finish Run
+        Finish run
       </button>
     </div>
 
@@ -66,7 +66,7 @@
         <h2>Run History</h2>
         <button id="history-close" class="history-close" disabled>&times;</button>
       </div>
-      <div id="history-list" class="history-list">
+      <div id="history-list" class="history-list" role="list" aria-label="Run history">
         <p class="empty-state">No runs yet. Start your first run!</p>
       </div>
     </div>

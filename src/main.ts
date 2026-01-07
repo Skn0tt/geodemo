@@ -69,6 +69,7 @@ function updateUI(state: RunState): void {
       playIcon.style.display = 'block';
       pauseIcon.style.display = 'none';
       finishBtn.style.display = 'none';
+      playPauseBtn.setAttribute('aria-label', 'Start run');
       durationDisplay.textContent = '00:00:00';
       distanceDisplay.textContent = formatDistance(0);
       stopTimer();
@@ -78,6 +79,7 @@ function updateUI(state: RunState): void {
       playIcon.style.display = 'none';
       pauseIcon.style.display = 'block';
       finishBtn.style.display = 'block';
+      playPauseBtn.setAttribute('aria-label', 'Pause run');
       startTimer();
       break;
 
@@ -85,6 +87,7 @@ function updateUI(state: RunState): void {
       playIcon.style.display = 'block';
       pauseIcon.style.display = 'none';
       finishBtn.style.display = 'block';
+      playPauseBtn.setAttribute('aria-label', 'Resume run');
       stopTimer();
       // Keep showing current values
       durationDisplay.textContent = formatDuration(getElapsedTime());
@@ -171,22 +174,22 @@ function renderHistory(): void {
   historyList.innerHTML = runs
     .map(
       (run) => `
-    <div class="run-card" data-run-id="${run.id}">
+    <article class="run-card" data-run-id="${run.id}" role="listitem" aria-label="Run on ${formatDate(run.startTime)}">
       <div class="run-card-info">
         <span class="run-card-date">${formatDate(run.startTime)}</span>
         <span class="run-card-time">${formatTime(run.startTime)}</span>
       </div>
       <div class="run-card-stats">
         <div class="run-card-stat">
-          <span class="run-card-stat-value">${formatDistance(run.distance)}</span>
+          <span class="run-card-stat-value" aria-label="Distance">${formatDistance(run.distance)}</span>
           <span class="run-card-stat-label">Distance</span>
         </div>
         <div class="run-card-stat">
-          <span class="run-card-stat-value">${formatDuration(run.duration)}</span>
+          <span class="run-card-stat-value" aria-label="Duration">${formatDuration(run.duration)}</span>
           <span class="run-card-stat-label">Duration</span>
         </div>
       </div>
-    </div>
+    </article>
   `
     )
     .join('');
