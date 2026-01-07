@@ -157,6 +157,17 @@ html, body {
   color: white;
 }
 
+.finish-btn.confirming {
+  background: var(--color-danger);
+  color: white;
+  animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
+}
+
 /* History toggle button */
 .history-toggle {
   position: absolute;

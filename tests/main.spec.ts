@@ -48,11 +48,9 @@ test('run from Alexanderplatz to Hackescher Markt', async ({ page }) => {
   await expect(page.getByLabel('Distance')).toHaveText(/\d+(\.\d+)?\s*(mi|ft)/);
   await expect(page.getByLabel('Distance')).not.toHaveText('0 ft');
 
-  // Finish the run
-  await Promise.all([
-    page.waitForEvent('dialog').then(dialog => dialog.accept()),
-    page.getByRole('button', { name: 'Finish run' }).click(),
-  ]);
+  // Finish the run (two-step confirmation)
+  await page.getByRole('button', { name: 'Finish run' }).click();
+  await page.getByRole('button', { name: "Tap to confirm" }).click();
 
   // Verify the run was saved by checking history
   await page.getByRole('button', { name: 'History' }).click();
