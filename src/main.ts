@@ -229,6 +229,13 @@ async function init(): Promise<void> {
   historyToggle.addEventListener('click', toggleHistory);
   historyClose.addEventListener('click', closeHistory);
 
+  // Enable buttons now that listeners are attached
+  playPauseBtn.disabled = false;
+  finishBtn.disabled = false;
+  recenterBtn.disabled = false;
+  historyToggle.disabled = false;
+  historyClose.disabled = false;
+
   // Initial UI state
   updateUI('stopped');
 
