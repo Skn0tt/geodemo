@@ -1,24 +1,24 @@
+import type { Coordinate } from './geo.ts';
+
+export interface Run {
+  id: string;
+  startTime: string; // ISO 8601
+  endTime: string; // ISO 8601
+  duration: number; // milliseconds
+  distance: number; // meters
+  coordinates: Coordinate[];
+}
+
 const STORAGE_KEY = 'runTracker_history';
 
 /**
- * @typedef {Object} Run
- * @property {string} id - Unique identifier
- * @property {string} startTime - ISO 8601 start time
- * @property {string} endTime - ISO 8601 end time
- * @property {number} duration - Duration in milliseconds
- * @property {number} distance - Distance in meters
- * @property {Array<[number, number]>} coordinates - Array of [lng, lat] points
- */
-
-/**
  * Get all runs from storage
- * @returns {Run[]}
  */
-export function getRuns() {
+export function getRuns(): Run[] {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (!data) return [];
-    return JSON.parse(data);
+    return JSON.parse(data) as Run[];
   } catch (e) {
     console.error('Failed to load runs from storage:', e);
     return [];
@@ -27,18 +27,17 @@ export function getRuns() {
 
 /**
  * Save a run to storage
- * @param {Run} run 
  */
-export function saveRun(run) {
+export function saveRun(run: Run): void {
   const runs = getRuns();
   runs.unshift(run); // Add to beginning (newest first)
-  
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(runs));
   } catch (e) {
     console.error('Failed to save run to storage:', e);
     // If storage is full, try removing oldest runs
-    if (e.name === 'QuotaExceededError') {
+    if (e instanceof DOMException && e.name === 'QuotaExceededError') {
       const trimmedRuns = runs.slice(0, 50); // Keep only 50 most recent
       localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmedRuns));
     }
@@ -47,28 +46,24 @@ export function saveRun(run) {
 
 /**
  * Get a specific run by ID
- * @param {string} id 
- * @returns {Run | undefined}
  */
-export function getRunById(id) {
+export function getRunById(id: string): Run | undefined {
   const runs = getRuns();
-  return runs.find(run => run.id === id);
+  return runs.find((run) => run.id === id);
 }
 
 /**
  * Delete a run by ID
- * @param {string} id 
  */
-export function deleteRun(id) {
+export function deleteRun(id: string): void {
   const runs = getRuns();
-  const filtered = runs.filter(run => run.id !== id);
+  const filtered = runs.filter((run) => run.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
 }
 
 /**
  * Generate a unique ID for a run
- * @returns {string}
  */
-export function generateId() {
+export function generateId(): string {
   return `run_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }

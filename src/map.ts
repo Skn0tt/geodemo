@@ -1,35 +1,40 @@
-import maplibregl from 'maplibre-gl';
+import maplibregl, { GeoJSONSource, LngLatLike, Map, Marker } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import type { Coordinate } from './geo.ts';
 
-let map = null;
-let startMarker = null;
-let currentMarker = null;
-let routeSource = null;
+let map: Map | null = null;
+let startMarker: Marker | null = null;
+let currentMarker: Marker | null = null;
+let routeSource: GeoJSONSource | null = null;
 
 // GeoJSON data for the active route
-const routeData = {
+const routeData: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
   type: 'FeatureCollection',
-  features: [{
-    type: 'Feature',
-    properties: {},
-    geometry: {
-      type: 'LineString',
-      coordinates: []
-    }
-  }]
+  features: [
+    {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: [],
+      },
+    },
+  ],
 };
 
 // GeoJSON data for history route display
-const historyRouteData = {
+const historyRouteData: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
   type: 'FeatureCollection',
-  features: [{
-    type: 'Feature',
-    properties: {},
-    geometry: {
-      type: 'LineString',
-      coordinates: []
-    }
-  }]
+  features: [
+    {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: [],
+      },
+    },
+  ],
 };
 
 // Stadia Maps - free for development, no API key needed for localhost
@@ -38,18 +43,29 @@ const STADIA_STYLE = 'https://tiles.stadiamaps.com/styles/osm_bright.json';
 
 const LAST_POSITION_KEY = 'runTracker_lastPosition';
 
+interface StoredPosition {
+  lng: number;
+  lat: number;
+}
+
 /**
  * Get last known position from storage
- * @returns {{lng: number, lat: number} | null}
  */
-function getStoredPosition() {
+function getStoredPosition(): StoredPosition | null {
   try {
     const data = localStorage.getItem(LAST_POSITION_KEY);
     if (!data) return null;
-    const parsed = JSON.parse(data);
+    const parsed = JSON.parse(data) as unknown;
     // Validate it's a proper position object
-    if (typeof parsed.lng === 'number' && typeof parsed.lat === 'number') {
-      return parsed;
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'lng' in parsed &&
+      'lat' in parsed &&
+      typeof (parsed as StoredPosition).lng === 'number' &&
+      typeof (parsed as StoredPosition).lat === 'number'
+    ) {
+      return parsed as StoredPosition;
     }
     return null;
   } catch {
@@ -59,10 +75,8 @@ function getStoredPosition() {
 
 /**
  * Save position to storage
- * @param {number} lng
- * @param {number} lat
  */
-export function savePosition(lng, lat) {
+export function savePosition(lng: number, lat: number): void {
   try {
     localStorage.setItem(LAST_POSITION_KEY, JSON.stringify({ lng, lat }));
   } catch {
@@ -72,30 +86,31 @@ export function savePosition(lng, lat) {
 
 /**
  * Initialize the map
- * @returns {Promise<void>}
  */
-export function initMap() {
+export function initMap(): Promise<void> {
   return new Promise((resolve) => {
     // Try to start at last known position
     const lastPos = getStoredPosition();
-    const initialCenter = lastPos ? [lastPos.lng, lastPos.lat] : [0, 0];
+    const initialCenter: LngLatLike = lastPos ? [lastPos.lng, lastPos.lat] : [0, 0];
     const initialZoom = lastPos ? 15 : 2;
 
     map = new maplibregl.Map({
       container: 'map',
       style: STADIA_STYLE,
       center: initialCenter,
-      zoom: initialZoom
+      zoom: initialZoom,
     });
 
     // Add navigation controls
     map.addControl(new maplibregl.NavigationControl(), 'bottom-right');
 
     map.on('load', () => {
+      if (!map) return;
+
       // Add route source and layer for active run
       map.addSource('route', {
         type: 'geojson',
-        data: routeData
+        data: routeData,
       });
 
       map.addLayer({
@@ -104,19 +119,19 @@ export function initMap() {
         source: 'route',
         layout: {
           'line-join': 'round',
-          'line-cap': 'round'
+          'line-cap': 'round',
         },
         paint: {
           'line-color': '#ef4444',
           'line-width': 5,
-          'line-opacity': 0.9
-        }
+          'line-opacity': 0.9,
+        },
       });
 
       // Add history route source and layer
       map.addSource('history-route', {
         type: 'geojson',
-        data: historyRouteData
+        data: historyRouteData,
       });
 
       map.addLayer({
@@ -125,16 +140,16 @@ export function initMap() {
         source: 'history-route',
         layout: {
           'line-join': 'round',
-          'line-cap': 'round'
+          'line-cap': 'round',
         },
         paint: {
           'line-color': '#6366f1',
           'line-width': 4,
-          'line-opacity': 0.7
-        }
+          'line-opacity': 0.7,
+        },
       });
 
-      routeSource = map.getSource('route');
+      routeSource = map.getSource('route') as GeoJSONSource;
       resolve();
     });
   });
@@ -142,52 +157,47 @@ export function initMap() {
 
 /**
  * Add a coordinate to the active route
- * @param {number} lng - Longitude
- * @param {number} lat - Latitude
  */
-export function addCoordinate(lng, lat) {
-  const coords = [lng, lat];
+export function addCoordinate(lng: number, lat: number): void {
+  if (!map) return;
+
+  const coords: LngLatLike = [lng, lat];
 
   // Save for next session
   savePosition(lng, lat);
-  
+
   // Add start marker on first coordinate
   if (routeData.features[0].geometry.coordinates.length === 0) {
-    startMarker = new maplibregl.Marker({ color: '#10b981' })
-      .setLngLat(coords)
-      .addTo(map);
-    
-    currentMarker = new maplibregl.Marker({ color: '#3b82f6' })
-      .setLngLat(coords)
-      .addTo(map);
-    
+    startMarker = new maplibregl.Marker({ color: '#10b981' }).setLngLat(coords).addTo(map);
+
+    currentMarker = new maplibregl.Marker({ color: '#3b82f6' }).setLngLat(coords).addTo(map);
+
     // Fast jump to location
     map.jumpTo({ center: coords, zoom: 16 });
   } else {
     // Update current position marker
-    currentMarker.setLngLat(coords);
+    currentMarker?.setLngLat(coords);
   }
 
   // Add to route and update source
-  routeData.features[0].geometry.coordinates.push(coords);
-  routeSource.setData(routeData);
+  routeData.features[0].geometry.coordinates.push([lng, lat]);
+  routeSource?.setData(routeData);
 }
 
 /**
  * Get current route coordinates
- * @returns {Array<[number, number]>}
  */
-export function getRouteCoordinates() {
-  return [...routeData.features[0].geometry.coordinates];
+export function getRouteCoordinates(): Coordinate[] {
+  return [...routeData.features[0].geometry.coordinates] as Coordinate[];
 }
 
 /**
  * Clear the active route
  */
-export function clearRoute() {
+export function clearRoute(): void {
   routeData.features[0].geometry.coordinates = [];
   routeSource?.setData(routeData);
-  
+
   if (startMarker) {
     startMarker.remove();
     startMarker = null;
@@ -200,18 +210,17 @@ export function clearRoute() {
 
 /**
  * Show a historical route on the map
- * @param {Array<[number, number]>} coordinates
  */
-export function showHistoryRoute(coordinates) {
-  if (!coordinates || coordinates.length === 0) return;
+export function showHistoryRoute(coordinates: Coordinate[]): void {
+  if (!map || !coordinates || coordinates.length === 0) return;
 
   historyRouteData.features[0].geometry.coordinates = coordinates;
-  map.getSource('history-route').setData(historyRouteData);
+  (map.getSource('history-route') as GeoJSONSource).setData(historyRouteData);
 
   // Fit map to show entire route
   const bounds = coordinates.reduce((bounds, coord) => {
-    return bounds.extend(coord);
-  }, new maplibregl.LngLatBounds(coordinates[0], coordinates[0]));
+    return bounds.extend(coord as LngLatLike);
+  }, new maplibregl.LngLatBounds(coordinates[0] as LngLatLike, coordinates[0] as LngLatLike));
 
   map.fitBounds(bounds, { padding: 60 });
 }
@@ -219,24 +228,22 @@ export function showHistoryRoute(coordinates) {
 /**
  * Clear the history route display
  */
-export function clearHistoryRoute() {
+export function clearHistoryRoute(): void {
+  if (!map) return;
   historyRouteData.features[0].geometry.coordinates = [];
-  map.getSource('history-route')?.setData(historyRouteData);
+  (map.getSource('history-route') as GeoJSONSource)?.setData(historyRouteData);
 }
 
 /**
  * Center map on given coordinates
- * @param {number} lng - Longitude
- * @param {number} lat - Latitude
  */
-export function centerOnUser(lng, lat) {
-  map.easeTo({ center: [lng, lat], zoom: 16 });
+export function centerOnUser(lng: number, lat: number): void {
+  map?.easeTo({ center: [lng, lat], zoom: 16 });
 }
 
 /**
  * Get the map instance (for advanced usage)
- * @returns {maplibregl.Map}
  */
-export function getMap() {
+export function getMap(): Map | null {
   return map;
 }
