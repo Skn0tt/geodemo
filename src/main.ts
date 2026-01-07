@@ -155,9 +155,11 @@ function toggleHistory(): void {
 /**
  * Close history panel
  */
-function closeHistory(): void {
+function closeHistory(clearRoute = true): void {
   historyPanel.classList.remove('open');
-  clearHistoryRoute();
+  if (clearRoute) {
+    clearHistoryRoute();
+  }
 }
 
 /**
@@ -201,7 +203,7 @@ function renderHistory(): void {
       const run = runs.find((r) => r.id === runId);
       if (run && run.coordinates) {
         showHistoryRoute(run.coordinates);
-        closeHistory();
+        closeHistory(false); // Don't clear the route we just drew
       }
     });
   });
