@@ -5,6 +5,11 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Run Tracker</title>
+    <!-- Hide body until CSS loads to prevent FOUC -->
+    <style>
+      body { opacity: 0; }
+      body.ready { opacity: 1; }
+    </style>
   </head>
   <body>
     <!-- Map container -->
@@ -56,7 +61,7 @@
     </button>
 
     <!-- History panel -->
-    <div id="history-panel" class="history-panel">
+    <div id="history-panel" class="history-panel" style="transform: translateY(100%)">
       <div class="history-header">
         <h2>Run History</h2>
         <button id="history-close" class="history-close">&times;</button>

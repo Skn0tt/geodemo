@@ -1,5 +1,5 @@
 import './style.css';
-import { initMap, centerOnUser, showHistoryRoute, clearHistoryRoute } from './map.js';
+import { initMap, centerOnUser, showHistoryRoute, clearHistoryRoute, savePosition } from './map.js';
 import { 
   startTracking, 
   pauseTracking, 
@@ -126,7 +126,9 @@ function handleRecenter() {
     // Try to get current position
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        centerOnUser(position.coords.longitude, position.coords.latitude);
+        const { longitude, latitude } = position.coords;
+        savePosition(longitude, latitude);
+        centerOnUser(longitude, latitude);
       },
       (error) => {
         console.error('Could not get position:', error.message);
@@ -225,6 +227,9 @@ async function init() {
   
   // Initial UI state
   updateUI('stopped');
+  
+  // Reveal the UI now that everything is ready
+  document.body.classList.add('ready');
   
   console.log('Run Tracker initialized!');
 }

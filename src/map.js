@@ -36,17 +36,56 @@ const historyRouteData = {
 // Options: osm_bright (vibrant), outdoors (terrain), alidade_smooth (minimal)
 const STADIA_STYLE = 'https://tiles.stadiamaps.com/styles/osm_bright.json';
 
+const LAST_POSITION_KEY = 'runTracker_lastPosition';
+
+/**
+ * Get last known position from storage
+ * @returns {{lng: number, lat: number} | null}
+ */
+function getStoredPosition() {
+  try {
+    const data = localStorage.getItem(LAST_POSITION_KEY);
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+    // Validate it's a proper position object
+    if (typeof parsed.lng === 'number' && typeof parsed.lat === 'number') {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Save position to storage
+ * @param {number} lng
+ * @param {number} lat
+ */
+export function savePosition(lng, lat) {
+  try {
+    localStorage.setItem(LAST_POSITION_KEY, JSON.stringify({ lng, lat }));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 /**
  * Initialize the map
  * @returns {Promise<void>}
  */
 export function initMap() {
   return new Promise((resolve) => {
+    // Try to start at last known position
+    const lastPos = getStoredPosition();
+    const initialCenter = lastPos ? [lastPos.lng, lastPos.lat] : [0, 0];
+    const initialZoom = lastPos ? 15 : 2;
+
     map = new maplibregl.Map({
       container: 'map',
       style: STADIA_STYLE,
-      center: [0, 0],
-      zoom: 2
+      center: initialCenter,
+      zoom: initialZoom
     });
 
     // Add navigation controls
@@ -108,6 +147,9 @@ export function initMap() {
  */
 export function addCoordinate(lng, lat) {
   const coords = [lng, lat];
+
+  // Save for next session
+  savePosition(lng, lat);
   
   // Add start marker on first coordinate
   if (routeData.features[0].geometry.coordinates.length === 0) {
@@ -119,7 +161,8 @@ export function addCoordinate(lng, lat) {
       .setLngLat(coords)
       .addTo(map);
     
-    map.flyTo({ center: coords, zoom: 16 });
+    // Fast jump to location
+    map.jumpTo({ center: coords, zoom: 16 });
   } else {
     // Update current position marker
     currentMarker.setLngLat(coords);
