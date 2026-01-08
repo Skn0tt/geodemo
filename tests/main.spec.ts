@@ -43,22 +43,13 @@ test('run from Alexanderplatz to Hackescher Markt', async ({ page }) => {
 
   // Verify duration shows non-zero value before finishing
   await expect(page.getByLabel('Duration')).not.toHaveText('00:00:00');
-  
+
   // Verify distance is displayed (should be around 0.49 mi based on the route)
   await expect(page.getByLabel('Distance')).toHaveText(/\d+(\.\d+)?\s*(mi|ft)/);
   await expect(page.getByLabel('Distance')).not.toHaveText('0 ft');
 
-  // Finish the run (two-step confirmation)
+  // Finish the run
   await page.getByRole('button', { name: 'Finish run' }).click();
-  await expect(page.getByRole('button', { name: 'Tap to confirm' })).toBeVisible();
-  
-  // Verify the confirm button resets after 3 seconds
-  await page.clock.fastForward(3000);
-  await expect(page.getByRole('button', { name: 'Finish run' })).toBeVisible();
-  
-  // Now actually finish the run
-  await page.getByRole('button', { name: 'Finish run' }).click();
-  await page.getByRole('button', { name: 'Tap to confirm' }).click();
 
   // Verify the run was saved by checking history
   await page.getByRole('button', { name: 'History' }).click();
