@@ -30,10 +30,6 @@ const distanceDisplay = document.getElementById('distance') as HTMLElement;
 // Animation frame ID for timer
 let timerFrameId: number | null = null;
 
-// Two-step finish button state
-let finishConfirmPending = false;
-let finishConfirmTimeout: ReturnType<typeof setTimeout> | null = null;
-
 /**
  * Update the timer display
  */
@@ -77,7 +73,6 @@ function updateUI(state: RunState): void {
       durationDisplay.textContent = '00:00:00';
       distanceDisplay.textContent = formatDistance(0);
       stopTimer();
-      clearFinishConfirmState();
       break;
 
     case 'running':
@@ -114,40 +109,11 @@ function handlePlayPause(): void {
 }
 
 /**
- * Handle finish button click (two-step confirmation)
+ * Handle finish button click
  */
 function handleFinish(): void {
-  if (finishConfirmPending) {
-    // Second tap - actually finish
-    clearFinishConfirmState();
-    finishRun();
-    renderHistory();
-  } else {
-    // First tap - enter confirmation state
-    finishConfirmPending = true;
-    finishBtn.textContent = 'Tap to confirm';
-    finishBtn.classList.add('confirming');
-    finishBtn.setAttribute('aria-label', 'Tap to confirm');
-    
-    // Auto-reset after 3 seconds
-    finishConfirmTimeout = setTimeout(() => {
-      clearFinishConfirmState();
-    }, 3000);
-  }
-}
-
-/**
- * Clear the finish confirmation state
- */
-function clearFinishConfirmState(): void {
-  finishConfirmPending = false;
-  finishBtn.textContent = 'Finish run';
-  finishBtn.classList.remove('confirming');
-  finishBtn.setAttribute('aria-label', 'Finish run');
-  if (finishConfirmTimeout) {
-    clearTimeout(finishConfirmTimeout);
-    finishConfirmTimeout = null;
-  }
+  finishRun();
+  renderHistory();
 }
 
 /**
