@@ -1,4 +1,4 @@
-import { addCoordinate, getRouteCoordinates, clearRoute } from './map.ts';
+import { addCoordinate, getRouteCoordinates, clearRoute, showHistoryRoute } from './map.ts';
 import { calculateTotalDistance, haversineDistance, type Coordinate } from './geo.ts';
 import { saveRun, generateId, type Run } from './storage.ts';
 
@@ -148,16 +148,19 @@ export function finishRun(): void {
       coordinates,
     };
     saveRun(run);
+
+    // Show the completed run as a history route so polyline remains visible
+    showHistoryRoute(coordinates);
   }
 
-  // Reset state
+  // Reset state (but keep route visible)
   state = 'stopped';
   startTime = null;
   pausedTime = 0;
   pauseStart = null;
   currentRunId = null;
   lastPosition = null;
-  clearRoute();
+  // Note: clearRoute() is called in startTracking() when beginning a new run
 
   onStateChange?.(state);
 }
