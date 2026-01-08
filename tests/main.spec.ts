@@ -23,6 +23,8 @@ test('run from Alexanderplatz to Hackescher Markt', async ({ page }) => {
   // Start the run
   await page.getByRole('button', { name: 'Start run' }).click();
 
+  await expect(page.getByRole('region', { name: 'Map' })).toHaveAccessibleName('Map with route at 52.521918,13.413215');
+
   // Simulate waypoints along the route from Alexanderplatz to Hackescher Markt
   // Each waypoint has a duration (in seconds) representing time to reach the next point
   const waypoints = [
@@ -50,6 +52,8 @@ test('run from Alexanderplatz to Hackescher Markt', async ({ page }) => {
 
   // Finish the run
   await page.getByRole('button', { name: 'Finish run' }).click();
+
+  await expect(page.getByRole('region', { name: 'Map' })).toHaveAccessibleName('Map with route from 52.521918,13.413215 to 52.522605,13.402360');
 
   // Verify the run was saved by checking history
   await page.getByRole('button', { name: 'History' }).click();

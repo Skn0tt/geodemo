@@ -182,6 +182,7 @@ export function addCoordinate(lng: number, lat: number): void {
   // Add to route and update source
   routeData.features[0].geometry.coordinates.push([lng, lat]);
   routeSource?.setData(routeData);
+  updatePolylineAria();
 }
 
 /**
@@ -197,6 +198,7 @@ export function getRouteCoordinates(): Coordinate[] {
 export function clearRoute(): void {
   routeData.features[0].geometry.coordinates = [];
   routeSource?.setData(routeData);
+  updatePolylineAria();
 
   if (startMarker) {
     startMarker.remove();
@@ -216,6 +218,7 @@ export function showHistoryRoute(coordinates: Coordinate[]): void {
 
   historyRouteData.features[0].geometry.coordinates = coordinates;
   (map.getSource('history-route') as GeoJSONSource).setData(historyRouteData);
+  updatePolylineAria();
 
   // Fit map to show entire route
   const bounds = coordinates.reduce((bounds, coord) => {
@@ -232,6 +235,7 @@ export function clearHistoryRoute(): void {
   if (!map) return;
   historyRouteData.features[0].geometry.coordinates = [];
   (map.getSource('history-route') as GeoJSONSource)?.setData(historyRouteData);
+  updatePolylineAria();
 }
 
 /**
@@ -239,6 +243,33 @@ export function clearHistoryRoute(): void {
  */
 export function centerOnUser(lng: number, lat: number): void {
   map?.easeTo({ center: [lng, lat], zoom: 16 });
+}
+
+/**
+ * Update aria-label on the map canvas with polyline coordinates
+ */
+function updatePolylineAria(): void {
+  if (!map) return;
+
+  const canvas = map.getCanvas();
+  if (!canvas) return;
+
+  // Check active route first, then history route
+  let coordinates = routeData.features[0].geometry.coordinates;
+  if (coordinates.length === 0) {
+    coordinates = historyRouteData.features[0].geometry.coordinates;
+  }
+
+  if (coordinates.length === 0) {
+    canvas.setAttribute('aria-label', 'Map');
+  } else if (coordinates.length === 1) {
+    const point = coordinates[0];
+    canvas.setAttribute('aria-label', `Map with route at ${point[1].toFixed(6)},${point[0].toFixed(6)}`);
+  } else {
+    const start = coordinates[0];
+    const end = coordinates[coordinates.length - 1];
+    canvas.setAttribute('aria-label', `Map with route from ${start[1].toFixed(6)},${start[0].toFixed(6)} to ${end[1].toFixed(6)},${end[0].toFixed(6)}`);
+  }
 }
 
 /**
