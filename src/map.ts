@@ -177,6 +177,14 @@ export function addCoordinate(lng: number, lat: number): void {
   } else {
     // Update current position marker
     currentMarker?.setLngLat(coords);
+
+    // Check if new point is outside visible bounds
+    const bounds = map.getBounds();
+    if (!bounds.contains(coords)) {
+      // Extend current bounds to include the new point
+      bounds.extend(coords);
+      map.fitBounds(bounds, { padding: 60, duration: 500 });
+    }
   }
 
   // Add to route and update source
