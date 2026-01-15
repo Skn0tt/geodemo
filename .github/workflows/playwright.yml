@@ -25,3 +25,9 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 30
+    - uses: actions/upload-artifact@v4
+      if: ${{ failure() }}
+      with:
+        name: last-run
+        path: test-results/.last-run.json
+        retention-days: 1

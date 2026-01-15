@@ -1,0 +1,86 @@
+name: Re-record Tests
+
+on:
+  workflow_run:
+    workflows: ["Playwright Tests"]
+    types:
+      - completed
+
+jobs:
+  rerecord:
+    if: >
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    
+    runs-on: ubuntu-latest
+    environment: ai-rerecording
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Get PR info
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pulls = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:${context.payload.workflow_run.head_branch}`,
+              state: 'open'
+            });
+            if (pulls.data.length === 0) {
+              core.setFailed('No open PR found for this branch');
+              return;
+            }
+            core.setOutput('number', pulls.data[0].number);
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Download last-run.json from failed run
+        uses: actions/download-artifact@v4
+        with:
+          name: last-run
+          path: test-results/
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Playwright tests with AI re-recording
+        run: npx playwright test --run-agents=all
+        env:
+          AZURE_SONNET_ENDPOINT: ${{ secrets.AZURE_SONNET_ENDPOINT }}
+          AZURE_SONNET_API_KEY: ${{ secrets.AZURE_SONNET_API_KEY }}
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: re-record tests via AI agent"
+            git push
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
