@@ -1,14 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test('center on location', async ({ page }) => {
+test('center on location', async ({ page, agent }) => {
   await page.goto('/');
-  // berlin alexanderplatz
   await page.context().setGeolocation({ latitude: 52.521918, longitude: 13.413215 });
   await page.context().grantPermissions(['geolocation']);
-  await page.getByRole('button', { name: 'Re-center on my location' }).click();
+  await agent.perform('Click "Center map on my location"');
 });
 
-test('run from Alexanderplatz to Hackescher Markt', async ({ page }) => {
+test('run from Alexanderplatz to Hackescher Markt', async ({ page, agent }) => {
   // Install fake timers before navigating
   await page.clock.install();
 
@@ -20,8 +19,7 @@ test('run from Alexanderplatz to Hackescher Markt', async ({ page }) => {
   // Start at Alexanderplatz
   await page.context().setGeolocation({ latitude: 52.521918, longitude: 13.413215 });
 
-  // Start the run
-  await page.getByRole('button', { name: 'Start run' }).click();
+  await agent.perform('Start the run');
 
   await expect(page.getByRole('region', { name: 'Map' })).toHaveAccessibleName('Map with route at 52.521918,13.413215');
 
@@ -50,13 +48,12 @@ test('run from Alexanderplatz to Hackescher Markt', async ({ page }) => {
   await expect(page.getByLabel('Distance')).toHaveText(/\d+(\.\d+)?\s*(mi|ft)/);
   await expect(page.getByLabel('Distance')).not.toHaveText('0 ft');
 
-  // Finish the run
-  await page.getByRole('button', { name: 'Finish run' }).click();
+  await agent.perform('Click the Finish button');
 
   await expect(page.getByRole('region', { name: 'Map' })).toHaveAccessibleName('Map with route from 52.521918,13.413215 to 52.522605,13.402360');
 
   // Verify the run was saved by checking history
-  await page.getByRole('button', { name: 'History' }).click();
+  await agent.perform('Open the History tab');
   await expect(page.getByRole('listitem', { name: /Run on/ })).toContainText(/\d+(\.\d+)?\s*mi/); // Distance
   await expect(page.getByRole('listitem', { name: /Run on/ })).toContainText(/\d{2}:\d{2}:\d{2}/); // Duration format
 });

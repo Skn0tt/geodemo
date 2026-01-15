@@ -1,0 +1,38 @@
+{
+  "Start the run": {
+    "actions": [
+      {
+        "method": "click",
+        "selector": "internal:role=button[name=\"Start run\"i]",
+        "code": "await page.getByRole('button', { name: 'Start run' }).click();"
+      }
+    ]
+  },
+  "Click \"Center map on my location\"": {
+    "actions": [
+      {
+        "method": "click",
+        "selector": "internal:role=button[name=\"Re-center on my location\"i]",
+        "code": "await page.getByRole('button', { name: 'Re-center on my location' }).click();"
+      }
+    ]
+  },
+  "Click the Finish button": {
+    "actions": [
+      {
+        "method": "click",
+        "selector": "internal:role=button[name=\"Finish run\"i]",
+        "code": "await page.getByRole('button', { name: 'Finish run' }).click();"
+      }
+    ]
+  },
+  "Open the History tab": {
+    "actions": [
+      {
+        "method": "click",
+        "selector": "internal:role=button[name=\"History\"i]",
+        "code": "await page.getByRole('button', { name: 'History' }).click();"
+      }
+    ]
+  }
+}
