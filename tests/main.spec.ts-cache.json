@@ -30,8 +30,8 @@
     "actions": [
       {
         "method": "click",
-        "selector": "internal:role=button[name=\"History\"i]",
-        "code": "await page.getByRole('button', { name: 'History' }).click();"
+        "selector": "internal:role=button[name=\"Last Runs\"i]",
+        "code": "await page.getByRole('button', { name: 'Last Runs' }).click();"
       }
     ]
   }
