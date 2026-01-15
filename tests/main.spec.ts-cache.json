@@ -12,8 +12,8 @@
     "actions": [
       {
         "method": "click",
-        "selector": "internal:role=button[name=\"Re-center on my location\"i]",
-        "code": "await page.getByRole('button', { name: 'Re-center on my location' }).click();"
+        "selector": "internal:role=button[name=\"Re-center me on the map\"i]",
+        "code": "await page.getByRole('button', { name: 'Re-center me on the map' }).click();"
       }
     ]
   },
