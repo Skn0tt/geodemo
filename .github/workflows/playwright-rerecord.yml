@@ -61,7 +61,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Playwright tests with AI re-recording
-        run: npx playwright test --run-agents=all
+        run: npx playwright test --last-failed --run-agents=all
         env:
           AZURE_SONNET_ENDPOINT: ${{ secrets.AZURE_SONNET_ENDPOINT }}
           AZURE_SONNET_API_KEY: ${{ secrets.AZURE_SONNET_API_KEY }}
