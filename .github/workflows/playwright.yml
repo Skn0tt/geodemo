@@ -30,4 +30,5 @@ jobs:
       with:
         name: last-run
         path: test-results/.last-run.json
+        include-hidden-files: true
         retention-days: 1
