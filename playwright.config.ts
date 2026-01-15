@@ -24,12 +24,12 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
-   agentOptions: {
-    api: 'anthropic',
-    apiKey: process.env.AZURE_SONNET_API_KEY!,
-    apiEndpoint: process.env.AZURE_SONNET_ENDPOINT!,
-    model: 'claude-sonnet-4-5',
-   }
+    agentOptions: {
+      api: 'anthropic',
+      apiKey: process.env.AZURE_SONNET_API_KEY!,
+      apiEndpoint: process.env.AZURE_SONNET_ENDPOINT!,
+      model: 'claude-sonnet-4-5',
+    }
   },
 
   /* Configure projects for major browsers */
